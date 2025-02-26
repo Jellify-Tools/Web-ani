@@ -14,12 +14,20 @@ class Bubble {
         this.radius = radius;
         this.color = color;
         this.velocity = velocity;
+        this.glow = 10; // Glow-Effekt
     }
 
-    // Zeichne Blase
+    // Zeichne Blase mit Glow-Effekt
     draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+
+        // Glow-Effekt
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = this.glow;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
         ctx.fillStyle = this.color;
         ctx.fill();
     }
@@ -29,6 +37,14 @@ class Bubble {
         this.x += this.velocity.x;
         this.y += this.velocity.y;
 
+        // Randkollision
+        if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+            this.velocity.x = -this.velocity.x;
+        }
+        if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+            this.velocity.y = -this.velocity.y;
+        }
+
         // Blasen verschmelzen, wenn sie sich berühren
         bubblesArray.forEach((otherBubble) => {
             if (this !== otherBubble) {
@@ -37,8 +53,9 @@ class Bubble {
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < this.radius + otherBubble.radius) {
-                    // Verschmelze Blasen
-                    this.radius += otherBubble.radius * 0.2;
+                    // Physikalisch korrektes Verschmelzen
+                    const newRadius = Math.sqrt(this.radius * this.radius + otherBubble.radius * otherBubble.radius);
+                    this.radius = newRadius;
                     otherBubble.radius = 0; // Entferne die andere Blase
                 }
             }
@@ -65,7 +82,7 @@ function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Erstelle kontinuierlich neue Blasen
-    if (bubblesArray.length < 20) {
+    if (bubblesArray.length < 30) {
         createBubbles();
     }
 
